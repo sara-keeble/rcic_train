@@ -30,8 +30,12 @@ The runtime is approximately 4-5 hours with a GPU accelerator on one site of the
 The dependencies can be found in ```requirements.txt```.
 
 ## Making predictions from API
-I deployed a fastapi-based API on Heroku to make predictions from the trained model. More information about the API can be found here:
-https://github.com/sara-keeble/rcic/
+I deployed a fastapi-based API on Heroku to make predictions from the trained model. More information about the API can be found in the deployment directory README.
 
 The application can be accessed using this URL:
 https://rcic.herokuapp.com/docs
+
+## Future Directions
+If I had more time and resources to work on this model, I would try utilizing an ArcNet model and taking advantage of twin-image training to get better accuracy (similar to this notebook https://www.kaggle.com/hmendonca/fold1h4r3-arcenetb4-2-256px-rcic-lb-0-9759). If this model was being put into a production environment where new batches of experimental images were being generated, I would need to make an automated pipeline for batch-processing and re-training the model. 
+
+There are several improvements I'd like to make to the API. Unit testing should be added to my API to catch user errors from the GUI, such as uploading the wrong image type. Also, the user images are copied over to a static filesystem on Heroku, but there isn't a system in place to clear the memory in between predictions if a user uploaded many images in one session which could cause problems given Heroku's limited storage capacity per dyno. The API is currently deployed on the free tier of Heroku, which wouldn't suffice in a higher traffic use-case. A paid Heroku account could likely provide the resources needed. Alternatively, containerizing the API in Docker and deploying it on a cloud platform such as AWS could perhaps provide a more scalable interface.  
