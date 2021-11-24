@@ -27,7 +27,7 @@ The code to re-create this model is in ```ImageClassification.py```. The command
 ```
 
 The runtime is approximately 4-5 hours with a GPU accelerator on one site of the training data.
-The dependencies can be found here: https://github.com/sara-keeble/rcic/blob/main/requirements.txt
+The dependencies can be found in ```requirements.txt```.
 
 ## Making predictions from API
 I deployed a fastapi-based API on Heroku to make predictions from the trained model. More information about the API can be found here:
