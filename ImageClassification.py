@@ -10,9 +10,10 @@ from fastai.vision import *
 
 def generate_df(train_df,sample_num=1):
     """Generates file paths for training images from info in train.csv"""
-    train_df['path'] = train_df['experiment'].str.cat(train_df['plate'].astype(str).str.cat(train_df['well'],\
-                                                                          sep='/'),sep='/Plate') + f'_s{str(sample_num)}_w'
-    train_df = train_df.drop(columns=['id_code','experiment','plate','well']).reindex(columns=['path','sirna'])
+    train_df['wpath'] = train_df['plate'].astype(str).str.cat(train_df['well'], sep='/')
+    train_df['path'] = train_df['experiment'].str.cat(train_df['wpath'] ,sep='/Plate')
+    train_df['path'] = train_df['path'] + f'_s{str(sample_num)}_w'
+    train_df = train_df.drop(columns=['id_code','experiment','plate','well', 'wpath']).reindex(columns=['path','sirna'])
     return train_df
 
 
@@ -70,11 +71,11 @@ def train_model(path, site, statedict, epochs, lrate):
     
     #split train dataset into validation and training
     train_df,val_df = train_test_split(proc_train_df, test_size=0.035, stratify = proc_train_df.sirna, random_state=42)
-    _proc_train_df = pd.concat([train_df,val_df])
+    final_train_df = pd.concat([train_df,val_df])
     
     #process the images
-    data = (MultiChannelImageList.from_df(df=_proc_train_df, path=f'{path}/train')
-        .split_by_idx(list(range(len(train_df),len(_proc_train_df))))
+    data = (MultiChannelImageList.from_df(df=final_train_df, path=f'{path}/train')
+        .split_by_idx(list(range(len(train_df),len(final_train_df))))
         .label_from_df()
         .transform(get_transforms(),size=256)
         .databunch(bs=128,num_workers=4)
@@ -110,21 +111,21 @@ def make_test_predictions(path):
 
     
 
-parser = argparse.ArgumentParser()
-parser.add_argument("-p", "--path", help="working directory", action="store", dest="path", default='.')
-parser.add_argument("-s", "--site", help="image site to train on", action="store", choices=['1', '2', 'both'], 
-                    dest="site", default=1)
-parser.add_argument("-t", "--train", help="perform training", action="store_true", dest="train", default=True)
-parser.add_argument("-ev", "--eval", help="evaluate model on test data and write predictions to file", 
-                    action="store_true", dest="eval", default=True)
-parser.add_argument("-e", "--epochs", help="number of training epochs", action="store", type=int, dest="epochs")
-parser.add_argument("-lr", "--learnrate", help="learning rate to use in training", action="store", type=float, dest="lrate")
-parser.add_argument("-ls", "--loadstate", help="file name of state dict to initialize weights", action="store", dest="statedict")
-parser.add_argument("-ex", "--export", help="file name to export model state dict and pickle file after training", action="store",
-                   dest="export")
-
-
 if __name__ == "__main__":
+    
+    parser = argparse.ArgumentParser()
+    parser.add_argument("-p", "--path", help="working directory", action="store", dest="path", default='.')
+    parser.add_argument("-s", "--site", help="image site to train on", action="store", choices=['1', '2', 'both'], 
+                        dest="site", default=1)
+    parser.add_argument("-t", "--train", help="perform training", action="store_true", dest="train", default=True)
+    parser.add_argument("-ev", "--eval", help="evaluate model on test data and write predictions to file", 
+                        action="store_true", dest="eval", default=True)
+    parser.add_argument("-e", "--epochs", help="number of training epochs", action="store", type=int, dest="epochs")
+    parser.add_argument("-lr", "--learnrate", help="learning rate to use in training", action="store", type=float, dest="lrate")
+    parser.add_argument("-ls", "--loadstate", help="file name of state dict to initialize weights", action="store", dest="statedict")
+    parser.add_argument("-ex", "--export", help="file name to export model state dict and pickle file after training", action="store",
+                       dest="export")
+
     args = parser.parse_args()
     
     import torchvision
